@@ -5,13 +5,16 @@
 #include <GL/glut.h> //the glut file for windows operations
 					 // it also includes gl.h and glu.h for the openGL library calls
 #include <math.h>
-
+#include <stdio.h>
 #define PI 3.1415926535898 
 
 double xpos, ypos, ydir, xdir;         // x and y position for house to be drawn
 double sx, sy, squash;          // xy scale factors
 double rot, rdir;             // rotation
 double ball_speed;
+// Variables para controlar la velocidad independientemente de los frames
+double deltaTime = 0.0;
+double lastTime = 0.0;
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
 				  0.,1.,0.,0.,\
@@ -41,7 +44,7 @@ void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius) {
 	glEnd();
 }
 
-GLfloat RadiusOfBall = 15.;
+GLfloat RadiusOfBall = 10.;
 // Draw the ball, centered at the origin
 void draw_ball() {
 	glColor3f(0.6, 0.3, 0.);
@@ -58,6 +61,10 @@ void Display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	// 160 is max X value in our world
 
+	// Calculamos delta time.
+	double currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+	deltaTime = currentTime - lastTime;
+	lastTime = currentTime;
 
 	  // Shape has hit the ground! Stop moving and start squashing down and then back up 
 	if (ypos == RadiusOfBall && ydir == -1) {
@@ -79,15 +86,19 @@ void Display(void)
 	}
 	else {
 		// set Y position to increment 1.5 times the direction of the bounce
-		ypos += ydir * ball_speed;
-
+		ypos += ydir * ball_speed * deltaTime;
+	
 		// If ball touches the top, change direction of ball downwards
-		if (ypos == 120 - RadiusOfBall) {
+		if (ypos >= 120 - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
+			ypos = 120 - RadiusOfBall; // Dejamos la pelota en el top
 			ydir = -1;
 		}
 		// If ball touches the bottom, change direction of ball upwards
-		else if (ypos < RadiusOfBall)
+		else if (ypos < RadiusOfBall) { // Lo miso que el caso anterior
+			ypos = RadiusOfBall; // Dejamos la pelota en buttom
 			ydir = 1;
+		}
+			
 	}
 
 	/*  //reset transformation state
@@ -154,7 +165,9 @@ void init(void) {
 	xpos = 80; ypos = RadiusOfBall; xdir = 1; ydir = 1;
 	sx = 1.; sy = 1.; squash = 0.9;
 	rot = 0;
-	ball_speed = 1.5;
+	ball_speed = 120;
+	// Tiempo actual
+	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0; 
 
 }
 
