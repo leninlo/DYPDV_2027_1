@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.VC.db
+
+# Compilación
+Debug/
+Release/
+x64/
+x86/
+
+# Objetos y ejecutables
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.log
+
+# Archivos temporales
+*.tmp
