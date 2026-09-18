@@ -15,6 +15,12 @@ double ball_speed;
 // Variables para controlar la velocidad independientemente de los frames
 double deltaTime = 0.0;
 double lastTime = 0.0;
+// Constantes para poder modificar las dimensiones del mundo a nuestro antojo
+const int WORLD_WIDTH = 500;
+const int WORLD_HEIGHT = 300;
+
+const int CENTER_XPOS = WORLD_WIDTH / 2;
+const int CENTER_YPOS = WORLD_HEIGHT / 2;
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
 				  0.,1.,0.,0.,\
@@ -44,7 +50,7 @@ void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius) {
 	glEnd();
 }
 
-GLfloat RadiusOfBall = 10.;
+GLfloat RadiusOfBall = 7.;
 // Draw the ball, centered at the origin
 void draw_ball() {
 	glColor3f(0.6, 0.3, 0.);
@@ -87,10 +93,16 @@ void Display(void)
 	else {
 		// set Y position to increment 1.5 times the direction of the bounce
 		ypos += ydir * ball_speed * deltaTime;
-	
+		xpos += xdir * ball_speed * deltaTime;
+		
+		if (xpos >= WORLD_WIDTH - RadiusOfBall || xpos <= RadiusOfBall) {
+			xpos = CENTER_XPOS;
+			ypos = CENTER_YPOS;
+
+		}
 		// If ball touches the top, change direction of ball downwards
-		if (ypos >= 120 - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
-			ypos = 120 - RadiusOfBall; // Dejamos la pelota en el top
+		if (ypos >= WORLD_HEIGHT - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
+			ypos = WORLD_HEIGHT - RadiusOfBall; // Dejamos la pelota en el top
 			ydir = -1;
 		}
 		// If ball touches the bottom, change direction of ball upwards
@@ -151,7 +163,7 @@ void reshape(int w, int h)
 	glLoadIdentity();
 
 	// keep our logical coordinate system constant
-	gluOrtho2D(0.0, 160.0, 0.0, 120.0);
+	gluOrtho2D(0.0, WORLD_WIDTH, 0.0, WORLD_HEIGHT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -162,7 +174,7 @@ void init(void) {
 	//set the clear color
 	glClearColor(0.0, 0.8, 0.0, 1.0);
 	// initial position set to 0,0
-	xpos = 80; ypos = RadiusOfBall; xdir = 1; ydir = 1;
+	xpos = CENTER_XPOS; ypos = CENTER_YPOS; xdir = 1; ydir = 1;
 	sx = 1.; sy = 1.; squash = 0.9;
 	rot = 0;
 	ball_speed = 120;
@@ -177,7 +189,7 @@ int main(int argc, char* argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(320, 240);
+	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 10);
 	glutCreateWindow("Bouncing Ball");
 	init();
 	glutDisplayFunc(Display);
