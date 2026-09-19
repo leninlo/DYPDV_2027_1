@@ -21,6 +21,14 @@ const int WORLD_HEIGHT = 300;
 
 const int CENTER_XPOS = WORLD_WIDTH / 2;
 const int CENTER_YPOS = WORLD_HEIGHT / 2;
+// Atributos de las paletas
+const float PADDLE_WIDTH = 5.0f;
+const float PADDLE_HEIGHT = 20.0f;
+float leftPadX;
+float leftPadY;
+float rightPadX;
+float rightPadY;
+ 
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
 				  0.,1.,0.,0.,\
@@ -50,6 +58,22 @@ void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius) {
 	glEnd();
 }
 
+void Mypaddle(GLfloat centerx, GLfloat centery) {
+	glBegin(GL_POLYGON);
+	glVertex2f(centerx + PADDLE_WIDTH, centery + PADDLE_HEIGHT); // arriba derecha
+	glVertex2f(centerx + PADDLE_WIDTH, centery - PADDLE_HEIGHT); // abajo derecha
+	glVertex2f(centerx - PADDLE_WIDTH, centery - PADDLE_HEIGHT); // abajo izquierda
+	glVertex2f(centerx - PADDLE_WIDTH, centery + PADDLE_HEIGHT); // arriba izquierda
+	glEnd();
+}
+
+void MiddleLine() {
+	glBegin(GL_LINES);
+	glVertex2f(CENTER_XPOS , 0); // arriba 
+	glVertex2f(CENTER_XPOS, WORLD_HEIGHT); // abajo 
+	glEnd();
+}
+
 GLfloat RadiusOfBall = 7.;
 // Draw the ball, centered at the origin
 void draw_ball() {
@@ -57,6 +81,18 @@ void draw_ball() {
 	MyCircle2f(0., 0., RadiusOfBall);
 
 }
+void draw_paddle() {
+	glColor3f(1.0, 1.0, 1.0);
+	Mypaddle(leftPadX, leftPadY);
+	Mypaddle(rightPadX, rightPadY);
+
+}
+
+void draw_Line() {
+	glColor3f(1.0, 1.0, 1.0);
+	MiddleLine();
+}
+
 
 void Display(void)
 {
@@ -148,6 +184,10 @@ void Display(void)
 	glMultMatrixf(T1);
 
 	draw_ball();
+
+	glLoadIdentity();
+	draw_Line();
+	draw_paddle();
 	glutPostRedisplay();
 
 
@@ -172,12 +212,17 @@ void reshape(int w, int h)
 
 void init(void) {
 	//set the clear color
-	glClearColor(0.0, 0.8, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 0.1);
 	// initial position set to 0,0
 	xpos = CENTER_XPOS; ypos = CENTER_YPOS; xdir = 1; ydir = 1;
 	sx = 1.; sy = 1.; squash = 0.9;
 	rot = 0;
 	ball_speed = 120;
+	//inicializamos las paletas
+	leftPadX = 20;
+	leftPadY = CENTER_YPOS;
+	rightPadX = WORLD_WIDTH - 20;
+	rightPadY = CENTER_YPOS;
 	// Tiempo actual
 	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0; 
 
@@ -190,6 +235,7 @@ int main(int argc, char* argv[])
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 10);
+	glutInitWindowPosition(100, 100); // Movemos la ventana al centro
 	glutCreateWindow("Bouncing Ball");
 	init();
 	glutDisplayFunc(Display);
