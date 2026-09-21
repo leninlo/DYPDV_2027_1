@@ -28,6 +28,12 @@ float leftPadX;
 float leftPadY;
 float rightPadX;
 float rightPadY;
+// varaibles para el movimieto de las paletas
+bool wPressed = false;
+bool sPressed = false;
+bool upPressed = false;
+bool downPressed = false;
+double paddle_Speed = 7000;
  
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -93,6 +99,22 @@ void draw_Line() {
 	MiddleLine();
 }
 
+// Metodos para detectar si las teclas de los jugadores estan presionadas o no.
+void player1(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w': wPressed = true;  break;
+	case 's': sPressed = true;  break;
+	//case 'w': case 'W': wPressed = true; break;
+	//case 's': case 'S': sPressed = true; break;
+	case 27:  exit(0);         break;
+	}
+}
+void player2(int key, int x, int y) {
+	switch (key) {
+	case GLUT_KEY_UP:   upPressed = true;   break;
+	case GLUT_KEY_DOWN: downPressed = true; break;
+	}
+}
 
 void Display(void)
 {
@@ -165,6 +187,7 @@ void Display(void)
 	  draw_ball();
 	*/
 
+
 	//Translate the bouncing ball to its new position
 	T[12] = xpos;
 	T[13] = ypos;
@@ -187,6 +210,14 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
+	if (wPressed) {
+		leftPadY += paddle_Speed * deltaTime;
+		wPressed = false;
+	}
+	if (sPressed) {
+		leftPadY += -paddle_Speed * deltaTime;
+		sPressed = false;
+	}
 	draw_paddle();
 	glutPostRedisplay();
 
@@ -240,6 +271,10 @@ int main(int argc, char* argv[])
 	init();
 	glutDisplayFunc(Display);
 	glutReshapeFunc(reshape);
+	// Llamadas del teclado
+	glutKeyboardFunc(player1);
+	glutSpecialFunc(player2);
+
 	glutMainLoop();
 
 	return 1;
