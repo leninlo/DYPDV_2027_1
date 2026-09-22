@@ -6,6 +6,7 @@
 					 // it also includes gl.h and glu.h for the openGL library calls
 #include <math.h>
 #include <stdio.h>
+#include <cstdlib>
 #define PI 3.1415926535898 
 
 double xpos, ypos, ydir, xdir;         // x and y position for house to be drawn
@@ -34,8 +35,6 @@ bool sPressed = false;
 bool upPressed = false;
 bool downPressed = false;
 double paddle_Speed = 300;
-double contTime = 0.1;
-double contTime2 = 0.1;
  
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -103,7 +102,6 @@ void draw_Line() {
 
 // Metodos para detectar si las teclas de los jugadores estan presionadas o no.
 void player1(unsigned char key, int x, int y) {
-	printf("P1: %c\n", key);
 	switch (key) {
 	case 'w': wPressed = true;  break;
 	case 's': sPressed = true;  break;
@@ -113,12 +111,24 @@ void player1(unsigned char key, int x, int y) {
 	}
 }
 void player2(int key, int x, int y) {
-	printf("P2: %d\n", key);
 	switch (key) {
 	case GLUT_KEY_UP:   upPressed = true;   break;
 	case GLUT_KEY_DOWN: downPressed = true; break;
 	}
 }
+void player1Up(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w': wPressed = false; break;
+	case 's': sPressed = false; break;
+	}
+}
+void player2Up(int key, int x, int y) {
+	switch (key) {
+	case GLUT_KEY_UP:   upPressed = false;   break;
+	case GLUT_KEY_DOWN: downPressed = false; break;
+	}
+}
+
 
 void Display(void)
 {
@@ -214,52 +224,19 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
+
+	if (wPressed)
+		leftPadY += paddle_Speed * deltaTime;
+
+	if (sPressed)
+		leftPadY -= paddle_Speed * deltaTime;
+
+	if (upPressed)
+		rightPadY += paddle_Speed * deltaTime;
+
+	if (downPressed)
+		rightPadY -= paddle_Speed * deltaTime;
 	
-	// Esto funciona bien para una sola paleta, para el moviemiento de las paletas al mismo tiempo falla.
-	if (wPressed) {
-		if (contTime > 0) {
-			contTime = contTime - deltaTime;
-			leftPadY += paddle_Speed * deltaTime;
-		}
-		else {
-			wPressed = false;
-			contTime = 0.1;
-		}
-		
-	}
-	if (sPressed) {
-		if (contTime >0) {
-			contTime = contTime - deltaTime;
-			leftPadY += -paddle_Speed * deltaTime;
-		}
-		else {
-			sPressed = false;
-			contTime = 0.1;
-		}
-		
-	}
-	if (upPressed) {
-		if (contTime2 > 0) {
-			contTime2 = contTime2 - deltaTime;
-			rightPadY += paddle_Speed * deltaTime;
-		}
-		else {
-			upPressed = false;
-			contTime2 = 0.1;
-		}
-
-	}
-	if (downPressed) {
-		if (contTime2 > 0) {
-			contTime2 = contTime2 - deltaTime;
-			rightPadY += -paddle_Speed * deltaTime;
-		}
-		else {
-			downPressed = false;
-			contTime2 = 0.1;
-		}
-
-	}
 	draw_paddle();
 	glutPostRedisplay();
 
@@ -315,7 +292,9 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 	// Llamadas del teclado
 	glutKeyboardFunc(player1);
+	glutKeyboardUpFunc(player1Up);
 	glutSpecialFunc(player2);
+	glutSpecialUpFunc(player2Up);
 
 	glutMainLoop();
 
