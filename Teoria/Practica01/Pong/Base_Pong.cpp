@@ -33,7 +33,9 @@ bool wPressed = false;
 bool sPressed = false;
 bool upPressed = false;
 bool downPressed = false;
-double paddle_Speed = 7000;
+double paddle_Speed = 300;
+double contTime = 0.1;
+double contTime2 = 0.1;
  
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -101,6 +103,7 @@ void draw_Line() {
 
 // Metodos para detectar si las teclas de los jugadores estan presionadas o no.
 void player1(unsigned char key, int x, int y) {
+	printf("P1: %c\n", key);
 	switch (key) {
 	case 'w': wPressed = true;  break;
 	case 's': sPressed = true;  break;
@@ -110,6 +113,7 @@ void player1(unsigned char key, int x, int y) {
 	}
 }
 void player2(int key, int x, int y) {
+	printf("P2: %d\n", key);
 	switch (key) {
 	case GLUT_KEY_UP:   upPressed = true;   break;
 	case GLUT_KEY_DOWN: downPressed = true; break;
@@ -210,13 +214,51 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
+	
+	// Esto funciona bien para una sola paleta, para el moviemiento de las paletas al mismo tiempo falla.
 	if (wPressed) {
-		leftPadY += paddle_Speed * deltaTime;
-		wPressed = false;
+		if (contTime > 0) {
+			contTime = contTime - deltaTime;
+			leftPadY += paddle_Speed * deltaTime;
+		}
+		else {
+			wPressed = false;
+			contTime = 0.1;
+		}
+		
 	}
 	if (sPressed) {
-		leftPadY += -paddle_Speed * deltaTime;
-		sPressed = false;
+		if (contTime >0) {
+			contTime = contTime - deltaTime;
+			leftPadY += -paddle_Speed * deltaTime;
+		}
+		else {
+			sPressed = false;
+			contTime = 0.1;
+		}
+		
+	}
+	if (upPressed) {
+		if (contTime2 > 0) {
+			contTime2 = contTime2 - deltaTime;
+			rightPadY += paddle_Speed * deltaTime;
+		}
+		else {
+			upPressed = false;
+			contTime2 = 0.1;
+		}
+
+	}
+	if (downPressed) {
+		if (contTime2 > 0) {
+			contTime2 = contTime2 - deltaTime;
+			rightPadY += -paddle_Speed * deltaTime;
+		}
+		else {
+			downPressed = false;
+			contTime2 = 0.1;
+		}
+
 	}
 	draw_paddle();
 	glutPostRedisplay();
