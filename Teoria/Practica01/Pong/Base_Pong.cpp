@@ -23,7 +23,7 @@ const int WORLD_HEIGHT = 300;
 const int CENTER_XPOS = WORLD_WIDTH / 2;
 const int CENTER_YPOS = WORLD_HEIGHT / 2;
 // Atributos de las paletas
-const float PADDLE_WIDTH = 5.0f;
+const float PADDLE_WIDTH = 8.0f;
 const float PADDLE_HEIGHT = 20.0f;
 float leftPadX;
 float leftPadY;
@@ -38,7 +38,10 @@ double paddle_Speed = 300;
 // Variable para el contador de puntos
 int contPlayer1 = 0;
 int contPlayer2 = 0;
- 
+// Aceleracion
+double colision_aceleration = 1;
+double maxAceleration = 3;
+
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
 				  0.,1.,0.,0.,\
@@ -79,7 +82,7 @@ void Mypaddle(GLfloat centerx, GLfloat centery) {
 
 void MiddleLine() {
 	glBegin(GL_LINES);
-	glVertex2f(CENTER_XPOS , 0); // arriba 
+	glVertex2f(CENTER_XPOS, 0); // arriba 
 	glVertex2f(CENTER_XPOS, WORLD_HEIGHT); // abajo 
 	glEnd();
 }
@@ -108,8 +111,8 @@ void player1(unsigned char key, int x, int y) {
 	switch (key) {
 	case 'w': wPressed = true;  break;
 	case 's': sPressed = true;  break;
-	//case 'w': case 'W': wPressed = true; break;
-	//case 's': case 'S': sPressed = true; break;
+		//case 'w': case 'W': wPressed = true; break;
+		//case 's': case 'S': sPressed = true; break;
 	case 27:  exit(0);         break;
 	}
 }
@@ -147,7 +150,7 @@ void Display(void)
 	deltaTime = currentTime - lastTime;
 	lastTime = currentTime;
 
-	  // Shape has hit the ground! Stop moving and start squashing down and then back up 
+	// Shape has hit the ground! Stop moving and start squashing down and then back up 
 	if (ypos == RadiusOfBall && ydir == -1) {
 		sy = sy * squash;
 
@@ -167,33 +170,79 @@ void Display(void)
 	}
 	else {
 		// set Y position to increment 1.5 times the direction of the bounce
-		ypos += ydir * ball_speed * deltaTime;
-		xpos += xdir * ball_speed * deltaTime;
+		float image = ball_speed * deltaTime * colision_aceleration;
+		ypos += ydir * image;
+		xpos += xdir * image;
 
 		// --------- COLISION CON PALETA IZQUIERDA ---------
 
-		if (xdir < 0 && // la pelota va hacia la izquierda
-			xpos - RadiusOfBall <= leftPadX + PADDLE_WIDTH &&
-			xpos + RadiusOfBall >= leftPadX - PADDLE_WIDTH &&
-			ypos >= leftPadY - PADDLE_HEIGHT &&
-			ypos <= leftPadY + PADDLE_HEIGHT)
+		if (xdir < 0 && xpos - RadiusOfBall <= leftPadX + PADDLE_WIDTH && xpos + RadiusOfBall >= leftPadX - PADDLE_WIDTH)
 		{
-			xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
-			xdir = 1;
+			// colisión por arriba
+			if (leftPadY + PADDLE_HEIGHT < ypos - RadiusOfBall &&
+				ypos - RadiusOfBall < leftPadY + PADDLE_HEIGHT + image)
+			{
+				ypos = leftPadY + PADDLE_HEIGHT;
+				ydir = 1;
+				xdir = 1;
+				if (colision_aceleration < maxAceleration) {
+					colision_aceleration += 0.3;
+				}
+				
+			}
+			// colisión por abajo
+			else if (leftPadY - PADDLE_HEIGHT > ypos + RadiusOfBall &&
+				ypos + RadiusOfBall > leftPadY - PADDLE_HEIGHT - image)
+			{
+				ypos = leftPadY - PADDLE_HEIGHT;
+				ydir = -1;
+				xdir = 1;
+				if (colision_aceleration < maxAceleration) {
+					colision_aceleration += 0.3;
+				}
+			}
+			// colisión lateral
+			else if (ypos >= leftPadY - PADDLE_HEIGHT &&
+				ypos <= leftPadY + PADDLE_HEIGHT)
+			{
+				xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
+				xdir = 1;
+			}
 		}
+
 
 		// --------- COLISION CON PALETA DERECHA ---------
 
-		if (xdir > 0 && // la pelota va hacia la derecha
-			xpos + RadiusOfBall >= rightPadX - PADDLE_WIDTH &&
-			xpos - RadiusOfBall <= rightPadX + PADDLE_WIDTH &&
-			ypos >= rightPadY - PADDLE_HEIGHT &&
-			ypos <= rightPadY + PADDLE_HEIGHT)
-		{
-			xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
-			xdir = -1;
+		if (xdir > 0 && xpos + RadiusOfBall >= rightPadX - PADDLE_WIDTH && xpos - RadiusOfBall <= rightPadX + PADDLE_WIDTH){
+			//colicion por arriba
+			if (rightPadY + PADDLE_HEIGHT < ypos - RadiusOfBall && ypos - RadiusOfBall < rightPadY + PADDLE_HEIGHT + image) {
+				ypos = rightPadY + PADDLE_HEIGHT;
+				xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+				ydir = 1;
+				xdir = -1;
+				if (colision_aceleration < maxAceleration) {
+					colision_aceleration += 0.3;
+				}
+			}
+			else if (rightPadY - PADDLE_HEIGHT > ypos + RadiusOfBall && ypos + RadiusOfBall > rightPadY - PADDLE_HEIGHT - image) {
+				ypos = rightPadY - PADDLE_HEIGHT;
+				xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+				ydir = -1;
+				xdir = -1;
+				if (colision_aceleration < maxAceleration) {
+					colision_aceleration += 0.3;
+				}
+			}
+			else
+				// Caso cuanod la pelota choca a un costado
+				if (ypos >= rightPadY - PADDLE_HEIGHT && ypos <= rightPadY + PADDLE_HEIGHT) {
+
+					xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+					xdir = -1;
+				}
+
 		}
-		
+
 		// El jugador 2 anota
 		if (xpos >= WORLD_WIDTH - RadiusOfBall) {
 			contPlayer1 += 1;
@@ -218,7 +267,7 @@ void Display(void)
 			ypos = RadiusOfBall; // Dejamos la pelota en buttom
 			ydir = 1;
 		}
-			
+
 	}
 
 	/*  //reset transformation state
@@ -260,7 +309,7 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
-	if(leftPadY <= WORLD_HEIGHT - PADDLE_HEIGHT){
+	if (leftPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
 		if (wPressed)
 			leftPadY += paddle_Speed * deltaTime;
 	}
@@ -278,7 +327,7 @@ void Display(void)
 		if (downPressed)
 			rightPadY -= paddle_Speed * deltaTime;
 	}
-	
+
 	draw_paddle();
 	glutPostRedisplay();
 
@@ -316,7 +365,7 @@ void init(void) {
 	rightPadX = WORLD_WIDTH - 20;
 	rightPadY = CENTER_YPOS;
 	// Tiempo actual
-	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0; 
+	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
 
 }
 
