@@ -35,6 +35,9 @@ bool sPressed = false;
 bool upPressed = false;
 bool downPressed = false;
 double paddle_Speed = 300;
+// Variable para el contador de puntos
+int contPlayer1 = 0;
+int contPlayer2 = 0;
  
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -166,11 +169,44 @@ void Display(void)
 		// set Y position to increment 1.5 times the direction of the bounce
 		ypos += ydir * ball_speed * deltaTime;
 		xpos += xdir * ball_speed * deltaTime;
+
+		// --------- COLISION CON PALETA IZQUIERDA ---------
+
+		if (xdir < 0 && // la pelota va hacia la izquierda
+			xpos - RadiusOfBall <= leftPadX + PADDLE_WIDTH &&
+			xpos + RadiusOfBall >= leftPadX - PADDLE_WIDTH &&
+			ypos >= leftPadY - PADDLE_HEIGHT &&
+			ypos <= leftPadY + PADDLE_HEIGHT)
+		{
+			xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
+			xdir = 1;
+		}
+
+		// --------- COLISION CON PALETA DERECHA ---------
+
+		if (xdir > 0 && // la pelota va hacia la derecha
+			xpos + RadiusOfBall >= rightPadX - PADDLE_WIDTH &&
+			xpos - RadiusOfBall <= rightPadX + PADDLE_WIDTH &&
+			ypos >= rightPadY - PADDLE_HEIGHT &&
+			ypos <= rightPadY + PADDLE_HEIGHT)
+		{
+			xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+			xdir = -1;
+		}
 		
-		if (xpos >= WORLD_WIDTH - RadiusOfBall || xpos <= RadiusOfBall) {
+		// El jugador 2 anota
+		if (xpos >= WORLD_WIDTH - RadiusOfBall) {
+			contPlayer1 += 1;
 			xpos = CENTER_XPOS;
 			ypos = CENTER_YPOS;
-
+			printf("Jugador 1 %d\n", contPlayer1);
+		}
+		// El jugador uno anota
+		if (xpos <= RadiusOfBall) {
+			contPlayer2 += 1;
+			xpos = CENTER_XPOS;
+			ypos = CENTER_YPOS;
+			printf("Jugador 2 %d\n", contPlayer2);
 		}
 		// If ball touches the top, change direction of ball downwards
 		if (ypos >= WORLD_HEIGHT - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
@@ -290,7 +326,7 @@ int main(int argc, char* argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 15);
+	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 30);
 	glutInitWindowPosition(100, 100); // Movemos la ventana al centro
 	glutCreateWindow("Bouncing Ball");
 	init();
