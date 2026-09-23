@@ -224,18 +224,24 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
+	if(leftPadY <= WORLD_HEIGHT - PADDLE_HEIGHT){
+		if (wPressed)
+			leftPadY += paddle_Speed * deltaTime;
+	}
+	if (leftPadY >= PADDLE_HEIGHT) {
+		if (sPressed)
+			leftPadY -= paddle_Speed * deltaTime;
+	}
 
-	if (wPressed)
-		leftPadY += paddle_Speed * deltaTime;
+	if (rightPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
+		if (upPressed)
+			rightPadY += paddle_Speed * deltaTime;
+	}
 
-	if (sPressed)
-		leftPadY -= paddle_Speed * deltaTime;
-
-	if (upPressed)
-		rightPadY += paddle_Speed * deltaTime;
-
-	if (downPressed)
-		rightPadY -= paddle_Speed * deltaTime;
+	if (rightPadY >= PADDLE_HEIGHT) {
+		if (downPressed)
+			rightPadY -= paddle_Speed * deltaTime;
+	}
 	
 	draw_paddle();
 	glutPostRedisplay();
@@ -284,7 +290,7 @@ int main(int argc, char* argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 10);
+	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 15);
 	glutInitWindowPosition(100, 100); // Movemos la ventana al centro
 	glutCreateWindow("Bouncing Ball");
 	init();
