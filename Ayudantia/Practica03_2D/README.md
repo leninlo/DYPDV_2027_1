@@ -1,17 +1,17 @@
-﻿# Práctica 1: Física Manual de Movimiento y Salto
+﻿# Práctica 3 : Movimiento Avanzado, Frenado y Dirección del Personaje
 
-**Ruta:** `/Ayudantia/Practica02_2D`  
+**Ruta:** `/Ayudantia/Practica03_2D`  
 **Curso:** Desarrollo de Videojuegos 2D
 
 ##  Instrucciones de Ejecución
 1. Abre **Unity Hub**.
-2. Selecciona **Open** y navega hasta la carpeta `/Ayudantia/Practica02_2D`.
+2. Selecciona **Open** y navega hasta la carpeta `/Ayudantia/Practica03_2D`.
 3. Haz clic en el botón **Play** (▶️) en la barra superior.
 
 ##  Pruebas
-1. Selecciona Game
+1. Selecciona game.
 2. Selecciona lasa flecha derecha y la izquierda para mover al jugador
-3. presiona la barra espaciadora para que el jugador salte.
+3. presiona la barra espaciadora para que el jugador salte.( Notaras que si presionas la barra espaciadora justo antes de que llegues al suelo, el muñeco saltara, lo que se sebe a la implementacion de CoyoteTime)
 
 ## Justtificación de implementación:
 
@@ -52,3 +52,5 @@
  #### Funciones matematicas
 
  Utilizamos dentro de la coleccion de funciones de `Mathf` 2 muy importantes: `public static float Clamp(float value, float min, float max);` que restringe un valor para que se mantenga en el intervalo. El otro es `public static float MoveTowards(float current, float target, float maxDelta);` que mueve un valor actual hacia un valor objetivo a una velocidad constante dada, además nunca sobrepasa el objetivo. De `MoveTowars()` se dá que el personaje frene hasta tener un velocidadActual de 0.
+ Para esta practica ya no se usa el metodo `MoveTowars()`, sino que simplemente se implemento de manera manual con una desaceleracion propia.
+
