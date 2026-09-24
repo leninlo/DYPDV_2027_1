@@ -41,6 +41,8 @@ int contPlayer2 = 0;
 // Aceleracion
 double colision_aceleration = 1;
 double maxAceleration = 3;
+// pausa
+bool gamePaused = false;
 
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -113,6 +115,24 @@ void player1(unsigned char key, int x, int y) {
 	case 's': sPressed = true;  break;
 		//case 'w': case 'W': wPressed = true; break;
 		//case 's': case 'S': sPressed = true; break;
+	case 'r':
+
+		if (gamePaused)
+		{
+			contPlayer1 = 0;
+			contPlayer2 = 0;
+
+			xpos = CENTER_XPOS;
+			ypos = CENTER_YPOS;
+
+			xdir = (rand() % 2) ? 1 : -1;
+			ydir = (rand() % 2) ? 1 : -1;
+
+			gamePaused = false;
+		}
+
+		break;
+
 	case 27:  exit(0);         break;
 	}
 }
@@ -126,6 +146,7 @@ void player1Up(unsigned char key, int x, int y) {
 	switch (key) {
 	case 'w': wPressed = false; break;
 	case 's': sPressed = false; break;
+	
 	}
 }
 void player2Up(int key, int x, int y) {
@@ -133,6 +154,43 @@ void player2Up(int key, int x, int y) {
 	case GLUT_KEY_UP:   upPressed = false;   break;
 	case GLUT_KEY_DOWN: downPressed = false; break;
 	}
+}
+
+// Funcion para detener el juego
+void finishGame(int winner)
+{
+	// Regresar pelota al centro
+	xpos = CENTER_XPOS;
+	ypos = CENTER_YPOS;
+
+	// Detener movimiento
+	xdir = 0;
+	ydir = 0;
+
+	// Regresar paletas a su posición inicial
+	leftPadY = CENTER_YPOS;
+	rightPadY = CENTER_YPOS;
+
+	// Reiniciar velocidad
+	colision_aceleration = 1;
+
+	// Limpiar entradas por si quedaron pulsadas
+	wPressed = false;
+	sPressed = false;
+	upPressed = false;
+	downPressed = false;
+
+	printf("\n");
+	printf("=================================\n");
+	printf("El ganador es el jugador %d\n", winner);
+	printf("Presiona R para iniciar otra partida\n");
+	printf("=================================\n");
+
+	gamePaused = true;
+	/* Es importante añadire esto al reaunudar, proque si pausamos algo de tiempo la pelota salta mucho.
+	deltaTime = 35.652000
+	Jugador 1 1, eso me ocurrio, ose que la pelota fue tan rapido que no se vio cuando se anoto el punto*/
+	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
 }
 
 
@@ -145,129 +203,167 @@ void Display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	// 160 is max X value in our world
 
-	// Calculamos delta time.
-	double currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
-	deltaTime = currentTime - lastTime;
-	lastTime = currentTime;
+	
+	if (!gamePaused) {
 
-	// Shape has hit the ground! Stop moving and start squashing down and then back up 
-	if (ypos == RadiusOfBall && ydir == -1) {
-		sy = sy * squash;
+		// Calculamos delta time.
+		double currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
 
-		if (sy < 0.8)
-			// reached maximum suqash, now unsquash back up 
-			squash = 1.1;
-		else if (sy > 1.) {
-			// reset squash parameters and bounce ball back upwards
-			sy = 1.;
-			squash = 0.9;
-			ydir = 1;
-		}
-		sx = 1. / sy;
+		// Shape has hit the ground! Stop moving and start squashing down and then back up 
+		if (ypos == RadiusOfBall && ydir == -1) {
+			sy = sy * squash;
 
-		// 120 is max Y value in our world
-
-	}
-	else {
-		// set Y position to increment 1.5 times the direction of the bounce
-		float image = ball_speed * deltaTime * colision_aceleration;
-		ypos += ydir * image;
-		xpos += xdir * image;
-
-		// --------- COLISION CON PALETA IZQUIERDA ---------
-
-		if (xdir < 0 && xpos - RadiusOfBall <= leftPadX + PADDLE_WIDTH && xpos + RadiusOfBall >= leftPadX - PADDLE_WIDTH)
-		{
-			// colisión por arriba
-			if (leftPadY + PADDLE_HEIGHT < ypos - RadiusOfBall &&
-				ypos - RadiusOfBall < leftPadY + PADDLE_HEIGHT + image)
-			{
-				ypos = leftPadY + PADDLE_HEIGHT;
+			if (sy < 0.8)
+				// reached maximum suqash, now unsquash back up 
+				squash = 1.1;
+			else if (sy > 1.) {
+				// reset squash parameters and bounce ball back upwards
+				sy = 1.;
+				squash = 0.9;
 				ydir = 1;
-				xdir = 1;
-				if (colision_aceleration < maxAceleration) {
-					colision_aceleration += 0.3;
-				}
-				
 			}
-			// colisión por abajo
-			else if (leftPadY - PADDLE_HEIGHT > ypos + RadiusOfBall &&
-				ypos + RadiusOfBall > leftPadY - PADDLE_HEIGHT - image)
-			{
-				ypos = leftPadY - PADDLE_HEIGHT;
-				ydir = -1;
-				xdir = 1;
-				if (colision_aceleration < maxAceleration) {
-					colision_aceleration += 0.3;
-				}
-			}
-			// colisión lateral
-			else if (ypos >= leftPadY - PADDLE_HEIGHT &&
-				ypos <= leftPadY + PADDLE_HEIGHT)
-			{
-				xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
-				xdir = 1;
-			}
+			sx = 1. / sy;
+
+			// 120 is max Y value in our world
+
 		}
+		else {
+			// set Y position to increment 1.5 times the direction of the bounce
+			float image = ball_speed * deltaTime * colision_aceleration;
+			ypos += ydir * image;
+			xpos += xdir * image;
 
+			// --------- COLISION CON PALETA IZQUIERDA ---------
 
-		// --------- COLISION CON PALETA DERECHA ---------
+			if (xdir < 0 && xpos - RadiusOfBall <= leftPadX + PADDLE_WIDTH && xpos + RadiusOfBall >= leftPadX - PADDLE_WIDTH)
+			{
+				// colisión por arriba
+				if (leftPadY + PADDLE_HEIGHT < ypos - RadiusOfBall &&
+					ypos - RadiusOfBall < leftPadY + PADDLE_HEIGHT + image)
+				{
+					ypos = leftPadY + PADDLE_HEIGHT;
+					ydir = 1;
+					xdir = 1;
+					if (colision_aceleration < maxAceleration) {
+						colision_aceleration += 0.3;
+					}
 
-		if (xdir > 0 && xpos + RadiusOfBall >= rightPadX - PADDLE_WIDTH && xpos - RadiusOfBall <= rightPadX + PADDLE_WIDTH){
-			//colicion por arriba
-			if (rightPadY + PADDLE_HEIGHT < ypos - RadiusOfBall && ypos - RadiusOfBall < rightPadY + PADDLE_HEIGHT + image) {
-				ypos = rightPadY + PADDLE_HEIGHT;
-				xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
-				ydir = 1;
-				xdir = -1;
-				if (colision_aceleration < maxAceleration) {
-					colision_aceleration += 0.3;
+				}
+				// colisión por abajo
+				else if (leftPadY - PADDLE_HEIGHT > ypos + RadiusOfBall &&
+					ypos + RadiusOfBall > leftPadY - PADDLE_HEIGHT - image)
+				{
+					ypos = leftPadY - PADDLE_HEIGHT;
+					ydir = -1;
+					xdir = 1;
+					if (colision_aceleration < maxAceleration) {
+						colision_aceleration += 0.3;
+					}
+				}
+				// colisión lateral
+				else if (ypos >= leftPadY - PADDLE_HEIGHT &&
+					ypos <= leftPadY + PADDLE_HEIGHT)
+				{
+					xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
+					xdir = 1;
 				}
 			}
-			else if (rightPadY - PADDLE_HEIGHT > ypos + RadiusOfBall && ypos + RadiusOfBall > rightPadY - PADDLE_HEIGHT - image) {
-				ypos = rightPadY - PADDLE_HEIGHT;
-				xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
-				ydir = -1;
-				xdir = -1;
-				if (colision_aceleration < maxAceleration) {
-					colision_aceleration += 0.3;
-				}
-			}
-			else
-				// Caso cuanod la pelota choca a un costado
-				if (ypos >= rightPadY - PADDLE_HEIGHT && ypos <= rightPadY + PADDLE_HEIGHT) {
 
+
+			// --------- COLISION CON PALETA DERECHA ---------
+
+			if (xdir > 0 && xpos + RadiusOfBall >= rightPadX - PADDLE_WIDTH && xpos - RadiusOfBall <= rightPadX + PADDLE_WIDTH) {
+				//colicion por arriba
+				if (rightPadY + PADDLE_HEIGHT < ypos - RadiusOfBall && ypos - RadiusOfBall < rightPadY + PADDLE_HEIGHT + image) {
+					ypos = rightPadY + PADDLE_HEIGHT;
 					xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+					ydir = 1;
 					xdir = -1;
+					if (colision_aceleration < maxAceleration) {
+						colision_aceleration += 0.3;
+					}
 				}
+				else if (rightPadY - PADDLE_HEIGHT > ypos + RadiusOfBall && ypos + RadiusOfBall > rightPadY - PADDLE_HEIGHT - image) {
+					ypos = rightPadY - PADDLE_HEIGHT;
+					xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+					ydir = -1;
+					xdir = -1;
+					if (colision_aceleration < maxAceleration) {
+						colision_aceleration += 0.3;
+					}
+				}
+				else
+					// Caso cuanod la pelota choca a un costado
+					if (ypos >= rightPadY - PADDLE_HEIGHT && ypos <= rightPadY + PADDLE_HEIGHT) {
+
+						xpos = rightPadX - PADDLE_WIDTH - RadiusOfBall;
+						xdir = -1;
+					}
+
+			}
+
+			// El jugador 2 anota
+			if (xpos >= WORLD_WIDTH - RadiusOfBall) {
+				contPlayer1 += 1;
+				xpos = CENTER_XPOS;
+				ypos = CENTER_YPOS;
+				xdir = (rand() % 2) ? 1 : -1;
+				ydir = (rand() % 2) ? 1 : -1;
+				printf("Jugador 1 %d\n", contPlayer1);
+			}
+			// El jugador uno anota
+			if (xpos <= RadiusOfBall) {
+				contPlayer2 += 1;
+				xpos = CENTER_XPOS;
+				ypos = CENTER_YPOS;
+				xdir = (rand() % 2) ? 1 : -1;
+				ydir = (rand() % 2) ? 1 : -1;
+				printf("Jugador 2 %d\n", contPlayer2);
+			}
+
+			// Con esto temina la partida
+			if (contPlayer1 >= 5)
+			{
+				finishGame(1);
+			}
+
+			if (contPlayer2 >= 5)
+			{
+				finishGame(2);
+			}
+
+			// If ball touches the top, change direction of ball downwards
+			if (ypos >= WORLD_HEIGHT - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
+				ypos = WORLD_HEIGHT - RadiusOfBall; // Dejamos la pelota en el top
+				ydir = -1;
+			}
+			// If ball touches the bottom, change direction of ball upwards
+			else if (ypos < RadiusOfBall) { // Lo miso que el caso anterior
+				ypos = RadiusOfBall; // Dejamos la pelota en buttom
+				ydir = 1;
+			}
 
 		}
-
-		// El jugador 2 anota
-		if (xpos >= WORLD_WIDTH - RadiusOfBall) {
-			contPlayer1 += 1;
-			xpos = CENTER_XPOS;
-			ypos = CENTER_YPOS;
-			printf("Jugador 1 %d\n", contPlayer1);
+		if (leftPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
+			if (wPressed)
+				leftPadY += paddle_Speed * deltaTime;
 		}
-		// El jugador uno anota
-		if (xpos <= RadiusOfBall) {
-			contPlayer2 += 1;
-			xpos = CENTER_XPOS;
-			ypos = CENTER_YPOS;
-			printf("Jugador 2 %d\n", contPlayer2);
-		}
-		// If ball touches the top, change direction of ball downwards
-		if (ypos >= WORLD_HEIGHT - RadiusOfBall) { // Hacemos >= ya que ypos puede ser mayor debido a que manejamos flotantes
-			ypos = WORLD_HEIGHT - RadiusOfBall; // Dejamos la pelota en el top
-			ydir = -1;
-		}
-		// If ball touches the bottom, change direction of ball upwards
-		else if (ypos < RadiusOfBall) { // Lo miso que el caso anterior
-			ypos = RadiusOfBall; // Dejamos la pelota en buttom
-			ydir = 1;
+		if (leftPadY >= PADDLE_HEIGHT) {
+			if (sPressed)
+				leftPadY -= paddle_Speed * deltaTime;
 		}
 
+		if (rightPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
+			if (upPressed)
+				rightPadY += paddle_Speed * deltaTime;
+		}
+
+		if (rightPadY >= PADDLE_HEIGHT) {
+			if (downPressed)
+				rightPadY -= paddle_Speed * deltaTime;
+		}
 	}
 
 	/*  //reset transformation state
@@ -309,24 +405,6 @@ void Display(void)
 
 	glLoadIdentity();
 	draw_Line();
-	if (leftPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
-		if (wPressed)
-			leftPadY += paddle_Speed * deltaTime;
-	}
-	if (leftPadY >= PADDLE_HEIGHT) {
-		if (sPressed)
-			leftPadY -= paddle_Speed * deltaTime;
-	}
-
-	if (rightPadY <= WORLD_HEIGHT - PADDLE_HEIGHT) {
-		if (upPressed)
-			rightPadY += paddle_Speed * deltaTime;
-	}
-
-	if (rightPadY >= PADDLE_HEIGHT) {
-		if (downPressed)
-			rightPadY -= paddle_Speed * deltaTime;
-	}
 
 	draw_paddle();
 	glutPostRedisplay();
