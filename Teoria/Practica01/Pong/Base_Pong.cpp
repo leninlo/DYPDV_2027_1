@@ -42,7 +42,9 @@ int contPlayer2 = 0;
 double colision_aceleration = 1;
 double maxAceleration = 3;
 // pausa
-bool gamePaused = false;
+bool gamePaused = true;
+// puntaje de ganador
+int winner = 5;
 
 
 GLfloat T1[16] = { 1.,0.,0.,0.,\
@@ -116,23 +118,37 @@ void player1(unsigned char key, int x, int y) {
 		//case 'w': case 'W': wPressed = true; break;
 		//case 's': case 'S': sPressed = true; break;
 	case 'r':
+		if (contPlayer1 >= winner || contPlayer2 >= winner) {
+			if (gamePaused)
+			{
+				contPlayer1 = 0;
+				contPlayer2 = 0;
 
-		if (gamePaused)
-		{
-			contPlayer1 = 0;
-			contPlayer2 = 0;
+				xpos = CENTER_XPOS;
+				ypos = CENTER_YPOS;
 
-			xpos = CENTER_XPOS;
-			ypos = CENTER_YPOS;
+				xdir = (rand() % 2) ? 1 : -1;
+				ydir = (rand() % 2) ? 1 : -1;
 
-			xdir = (rand() % 2) ? 1 : -1;
-			ydir = (rand() % 2) ? 1 : -1;
+				gamePaused = false;
+			}
 
-			gamePaused = false;
+			
 		}
-
 		break;
-
+	case ' ':
+		if (contPlayer1 >= winner || contPlayer2 >= winner) { // hacemos esto para que no se reinicie cuando alguien ya gano
+			break;
+		}
+		if (gamePaused) { // Caso cuando reaanudamos el juego
+			gamePaused = false;
+			lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+		}
+		else {
+			gamePaused = true;
+		}
+		
+		break;
 	case 27:  exit(0);         break;
 	}
 }
@@ -244,6 +260,7 @@ void Display(void)
 					ypos - RadiusOfBall < leftPadY + PADDLE_HEIGHT + image)
 				{
 					ypos = leftPadY + PADDLE_HEIGHT;
+					xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
 					ydir = 1;
 					xdir = 1;
 					if (colision_aceleration < maxAceleration) {
@@ -256,6 +273,7 @@ void Display(void)
 					ypos + RadiusOfBall > leftPadY - PADDLE_HEIGHT - image)
 				{
 					ypos = leftPadY - PADDLE_HEIGHT;
+					xpos = leftPadX + PADDLE_WIDTH + RadiusOfBall;
 					ydir = -1;
 					xdir = 1;
 					if (colision_aceleration < maxAceleration) {
@@ -324,12 +342,12 @@ void Display(void)
 			}
 
 			// Con esto temina la partida
-			if (contPlayer1 >= 5)
+			if (contPlayer1 >= winner)
 			{
 				finishGame(1);
 			}
 
-			if (contPlayer2 >= 5)
+			if (contPlayer2 >= winner)
 			{
 				finishGame(2);
 			}
@@ -442,6 +460,17 @@ void init(void) {
 	leftPadY = CENTER_YPOS;
 	rightPadX = WORLD_WIDTH - 20;
 	rightPadY = CENTER_YPOS;
+	printf("=================================================================\n");
+	printf("***Usa las teclas w,s para mover a tu jugador izquierdo*****\n");
+	printf("***Usa las teclas up,down para mover a tu jugador derecho***\n");
+	printf("=================================================================\n");
+	printf("Usa r para reiniciar la partida una ves terminada\n");
+	printf("===================================\n\n");
+
+	printf("Usa `space` para iniciar la partida y poner pausa\n\n");
+
+	printf("===================================\n\n");
+
 	// Tiempo actual
 	lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
 
@@ -454,7 +483,7 @@ int main(int argc, char* argv[])
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(WORLD_WIDTH + 10, WORLD_HEIGHT + 30);
-	glutInitWindowPosition(100, 100); // Movemos la ventana al centro
+	glutInitWindowPosition(800, 100); // Movemos la ventana al centro
 	glutCreateWindow("Bouncing Ball");
 	init();
 	glutDisplayFunc(Display);
