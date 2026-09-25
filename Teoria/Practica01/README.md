@@ -9,6 +9,15 @@ Algo muy importante a tomar en cuenta es que la API portatil que proporciona `GL
 
 # Compilación del proyecto
 
+1. Abre el archivo ``Pong.sln` que se encuntra dentro de `\DYPDV_2027_1\Teoria\Practica01\Pong`
+2. Presiona play con el mensaje **Depurar localmente con windows** y espera a que se abra la ventana
+3. A continuacion se mostraran en consola las instrucciones del juego(ahí se mostraran las putuaciones de los jugadores)
+    1. Presiona `Espacio` para iniciar el juego y para oner pausa
+	2. Presiona `r` para reiniciar el juego(Solo s epuede usar cuando uno de los jugadores halla ganado)
+	3. Usa las teclas w,s para mover arriba o abajo al jugador de la izquierda.
+	4. Usa las teclas especiales up y down para mover arriba o abajo al jugador de la derecha.
+5. Para cerrar el juego cierra la ventana del juego y posteriormente presiona cualquier tecla para cerrar la terminal
+
 
 # Implementacion con GLUT 3.3
 
